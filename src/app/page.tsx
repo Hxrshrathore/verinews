@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ShieldAlert, History as HistoryIcon, Globe, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { Search, Globe, ChevronRight, History as HistoryIcon, Loader2, ArrowRightCircle } from "lucide-react";
 import "./globals.css";
 
 interface VerificationResult {
@@ -34,7 +34,7 @@ export default function Home() {
       setResult(data);
       fetchHistory();
     } catch (error: any) {
-      alert("Error: " + error.message);
+      alert("Verification Failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -55,93 +55,77 @@ export default function Home() {
   return (
     <main className="container">
       <header>
-        <h1>VeriNews AI</h1>
-        <p className="subtitle">Instant Truth Verification Engine</p>
+        <h1>VeriNews</h1>
+        <p className="subtitle">The standard for information integrity.</p>
       </header>
 
-      <div className="card search-box">
+      <div className="search-container">
         <textarea
-          placeholder="Paste news headline or claim here..."
+          placeholder="Enter a claim to verify..."
           value={claim}
           onChange={(e) => setClaim(e.target.value)}
           disabled={loading}
         />
-        <button className="btn" onClick={handleVerify} disabled={loading || !claim.trim()}>
-          {loading ? <Loader2 className="pulse" size={20} /> : <Search size={20} />}
-          {loading ? "Analyzing..." : "Verify Claim"}
-        </button>
+        <div className="action-bar">
+          <button 
+            className="btn-primary" 
+            onClick={handleVerify} 
+            disabled={loading || !claim.trim()}
+          >
+            {loading ? <Loader2 className="shimmer" size={20} /> : "Verify Now"}
+          </button>
+        </div>
       </div>
 
       {result && (
-        <div className="card fade-in">
-          <div className="result-header">
-            <div>
-              <span className={`badge badge-${result.verdict}`}>
-                {result.verdict}
-              </span>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Confidence</span>
-              <div style={{ fontWeight: "bold" }}>{result.confidence}%</div>
-            </div>
+        <section className="result-card">
+          <span className={`verdict-banner verdict-${result.verdict}`}>
+            Analysis Verdict
+          </span>
+          <div className="confidence-display">
+            {result.verdict === "REAL" ? "" : result.verdict === "FAKE" ? "" : ""}
+            {result.confidence}%
+            <span style={{ fontSize: '24px', verticalAlign: 'middle', marginLeft: '10px', color: 'var(--text-sub)' }}>Confidence</span>
           </div>
 
-          <div className="confidence-bar">
-            <div className="confidence-fill" style={{ width: `${result.confidence}%` }}></div>
-          </div>
+          <p className="explanation">{result.reason}</p>
 
-          <div className="reason">
-            <p>{result.reason}</p>
+          <div style={{ marginTop: '32px' }}>
+            {result.sources.map((src, i) => (
+              <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="source-tag">
+                <Globe size={14} /> {new URL(src).hostname} <ChevronRight size={12} />
+              </a>
+            ))}
           </div>
-
-          {result.sources.length > 0 && (
-            <div className="sources-list">
-              <p style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "0.5rem", color: "#94a3b8" }}>SOURCES</p>
-              {result.sources.map((src: string, i: number) => (
-                <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="source-item">
-                  <Globe size={14} /> {src}
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
+        </section>
       )}
 
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
-        <button 
-          className="btn" 
-          style={{ background: "transparent", border: "1px solid var(--card-border)" }}
-          onClick={() => setShowHistory(!showHistory)}
-        >
-          <HistoryIcon size={18} />
-          {showHistory ? "Hide History" : "View Recent Checks"}
-        </button>
-      </div>
+      <footer className="history-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 600 }}>Recent Activity</h2>
+          <button 
+            onClick={() => setShowHistory(!showHistory)}
+            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '17px', fontWeight: 500 }}
+          >
+            {showHistory ? "Show Less" : "See All"}
+          </button>
+        </div>
 
-      {showHistory && (
-        <div className="fade-in" style={{ marginTop: "2rem" }}>
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "1.5rem", textAlign: "center" }}>Recent Verifications</h2>
-          {history.map((item, idx) => (
-            <div key={idx} className="card" style={{ padding: "1.2rem", marginBottom: "1rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <span className={`badge badge-${item.verdict}`} style={{ padding: "0.2rem 0.6rem", fontSize: "0.6rem" }}>
-                  {item.verdict}
-                </span>
-                <span style={{ fontSize: "0.7rem", color: "#64748b" }}>
-                  {new Date(item.created_at).toLocaleDateString()}
-                </span>
+        {showHistory && (
+          <div className="history-grid">
+            {history.map((item, idx) => (
+              <div key={idx} className="history-item">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <span className={`verdict-banner verdict-${item.verdict}`} style={{ fontSize: '11px' }}>{item.verdict}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{new Date(item.created_at).toLocaleDateString()}</span>
+                </div>
+                <h3 className="history-title">{item.claim}</h3>
+                <p style={{ fontSize: '14px', color: 'var(--text-sub)', lineClamp: 2 }}>{item.reason}</p>
               </div>
-              <p style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "0.5rem" }}>{item.claim}</p>
-              <p style={{ fontSize: "0.8rem", color: "#94a3b8", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                {item.reason}
-              </p>
-            </div>
-          ))}
-          {history.length === 0 && (
-            <p style={{ textAlign: "center", color: "#64748b", fontStyle: "italic" }}>No history found.</p>
-          )}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </footer>
     </main>
   );
 }
