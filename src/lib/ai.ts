@@ -56,13 +56,20 @@ export async function analyzeNews(data: {
     }
 
     const result = await response.json();
+    
+    // Defensive check for OpenRouter response structure
+    if (!result || !result.choices || !Array.isArray(result.choices) || result.choices.length === 0) {
+      console.error("Malformed AI Response:", result);
+      throw new Error(`AI Model failure: ${JSON.stringify(result.error || "No choices returned from model")}`);
+    }
+
     const text = result.choices[0]?.message?.content || "";
     
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
-    throw new Error("Failed to parse AI response: " + text);
+    throw new Error("Failed to extract JSON from AI response: " + text.slice(0, 50) + "...");
   } catch (error: any) {
     console.error("AI Analysis Error:", error.message);
     throw error;

@@ -48,6 +48,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -58,6 +59,7 @@ export default function Home() {
     
     setLoading(true);
     setResult(null);
+    setError(null);
     setProgress(0);
     setStatusText("Initializing...");
 
@@ -70,7 +72,8 @@ export default function Home() {
 
       if (res.status === 429) {
         const errorData = await res.json();
-        alert(errorData.error);
+        setError(errorData.error);
+        setLoading(false);
         return;
       }
 
@@ -203,6 +206,26 @@ export default function Home() {
                 className="h-full bg-accent transition-all duration-700 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                 style={{ width: `${progress}%` }}
               />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="max-w-[800px] mx-auto mt-12 animate-reveal-up">
+            <div className="bento-card bg-red-500/5 border-red-500/20 flex flex-col items-center text-center py-12">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-[20px] font-bold tracking-tight mb-2">Analysis Interrupted</h3>
+              <p className="text-fg-sub text-[15px] max-w-[400px] italic">
+                {error}
+              </p>
+              <button 
+                onClick={() => handleVerify()}
+                className="mt-8 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[13px] font-bold hover:bg-white/10 transition-all"
+              >
+                Retry Protocol
+              </button>
             </div>
           </div>
         )}
