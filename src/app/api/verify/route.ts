@@ -18,23 +18,26 @@ export async function POST(req: NextRequest) {
     // 2. Fetch Fact Check Data
     const factCheckData = await getFactCheckData(claim);
 
-    // 3. Analyze with Gemini
+    // 3. Analyze with AI
     const analysis = await analyzeNews({
       claim,
       searchResults,
       factCheckData,
     });
 
+    // Normalize confidence to 0-100
+    if (typeof analysis.confidence === 'number') {
+      analysis.confidence = analysis.confidence <= 1 
+        ? Math.round(analysis.confidence * 100) 
+        : Math.round(analysis.confidence);
+    }
+
     // 4. Save to Database
     try {
       if (sql) {
-        const confidenceValue = analysis.confidence <= 1 
-          ? Math.round(analysis.confidence * 100) 
-          : Math.round(analysis.confidence);
-
         await sql`
           INSERT INTO verifications (claim, verdict, confidence, reason, sources)
-          VALUES (${claim}, ${analysis.verdict}, ${confidenceValue}, ${analysis.reason}, ${JSON.stringify(analysis.sources)})
+          VALUES (${claim}, ${analysis.verdict}, ${analysis.confidence}, ${analysis.reason}, ${JSON.stringify(analysis.sources)})
         `;
       }
     } catch (dbError) {

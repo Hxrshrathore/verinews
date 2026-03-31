@@ -25,7 +25,7 @@ export async function analyzeNews(data: {
     Provide your output STRICTLY in the following JSON format without any other text or markdown blocks:
     {
       "verdict": "REAL", "FAKE", "MISLEADING", or "UNVERIFIED",
-      "confidence": number,
+      "confidence": number (0-100 scale),
       "reason": "explanation",
       "sources": ["URL1", "URL2"]
     }
