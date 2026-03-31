@@ -10,10 +10,14 @@ export async function analyzeNews(data: {
   }
 
   const prompt = `
-    You are a professional fake news detection system.
+    You are a professional, decisive news verification AI. 
     
-    Analyze the following news claim using the provided web search results and fact-check data.
-    
+    CRITICAL RULE: Your "verdict" MUST logically match your "reason". 
+    - If the evidence shows a claim is False or a Hoax, the verdict MUST be "FAKE". 
+    - If the evidence supports the claim as true, the verdict MUST be "REAL".
+    - If it's a mix or lacks context, use "MISLEADING".
+    - Avoid being neutral or biased. Be authoritative based on the provided search data.
+
     Claim: ${data.claim}
     
     Search Results:
@@ -24,9 +28,9 @@ export async function analyzeNews(data: {
     
     Provide your output STRICTLY in the following JSON format without any other text or markdown blocks:
     {
-      "verdict": "REAL", "FAKE", "MISLEADING", or "UNVERIFIED",
+      "verdict": "REAL" | "FAKE" | "MISLEADING" | "UNVERIFIED",
       "confidence": number (0-100 scale),
-      "reason": "explanation",
+      "reason": "Clear, concise architectural analysis of the claim's integrity.",
       "sources": ["URL1", "URL2"]
     }
   `;
