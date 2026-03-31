@@ -52,6 +52,25 @@ export default function Home() {
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "VeriNews AI",
+    "description": "High-fidelity information verification engine powered by multi-vector AI analysis.",
+    "applicationCategory": "NewsApplication",
+    "operatingSystem": "Web, Android",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  };
 
   const handleVerify = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -153,6 +172,10 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-bg text-fg selection:bg-accent/30 overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Immersive Hero Section */}
       <section className="relative w-full h-[85vh] flex flex-col items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
@@ -260,12 +283,16 @@ export default function Home() {
               </div>
               
               <div className="flex flex-wrap gap-2 mt-auto pt-6 border-t border-white/5">
-                {result.sources.slice(0, 4).map((src, i) => (
-                  <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-4 py-2 text-[12px] font-bold hover:bg-white/10 hover:border-accent/40 transition-all">
-                    <Globe size={14} className="text-accent" /> 
-                    <span>{new URL(src).hostname.replace('www.', '')}</span>
-                  </a>
-                ))}
+                {result.sources.slice(0, 4).map((src, i) => {
+                  let hostname = "Source";
+                  try { hostname = new URL(src).hostname.replace('www.', ''); } catch (e) {}
+                  return (
+                    <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-4 py-2 text-[12px] font-bold hover:bg-white/10 hover:border-accent/40 transition-all">
+                      <Globe size={14} className="text-accent" /> 
+                      <span>{hostname}</span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
 
@@ -380,7 +407,7 @@ export default function Home() {
                     <div className="overflow-hidden">
                       <div className="font-bold text-[17px] truncate text-fg group-hover:text-accent transition-colors">{item.claim}</div>
                       <div className="text-[11px] text-fg-sub font-bold uppercase tracking-wider mt-1">
-                        {item.verdict} • {new Date(item.created_at).toLocaleDateString()}
+                        {item.verdict} • {mounted ? new Date(item.created_at).toLocaleDateString() : "Loading..."}
                       </div>
                     </div>
                   </div>
