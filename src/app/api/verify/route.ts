@@ -28,9 +28,13 @@ export async function POST(req: NextRequest) {
     // 4. Save to Database
     try {
       if (sql) {
+        const confidenceValue = analysis.confidence <= 1 
+          ? Math.round(analysis.confidence * 100) 
+          : Math.round(analysis.confidence);
+
         await sql`
           INSERT INTO verifications (claim, verdict, confidence, reason, sources)
-          VALUES (${claim}, ${analysis.verdict}, ${analysis.confidence}, ${analysis.reason}, ${JSON.stringify(analysis.sources)})
+          VALUES (${claim}, ${analysis.verdict}, ${confidenceValue}, ${analysis.reason}, ${JSON.stringify(analysis.sources)})
         `;
       }
     } catch (dbError) {

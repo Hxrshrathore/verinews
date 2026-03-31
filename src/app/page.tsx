@@ -53,15 +53,15 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="container">
+    <main className="container" style={{ position: 'relative', zIndex: 1 }}>
       <header>
-        <h1>VeriNews</h1>
-        <p className="subtitle">The standard for information integrity.</p>
+        <h1>VeriNews AI</h1>
+        <p className="subtitle">High-fidelity information verification powered by advanced AI and real-time search.</p>
       </header>
 
       <div className="search-container">
         <textarea
-          placeholder="Enter a claim to verify..."
+          placeholder="Paste a news claim or statement here..."
           value={claim}
           onChange={(e) => setClaim(e.target.value)}
           disabled={loading}
@@ -72,57 +72,92 @@ export default function Home() {
             onClick={handleVerify} 
             disabled={loading || !claim.trim()}
           >
-            {loading ? <Loader2 className="shimmer" size={20} /> : "Verify Now"}
+            {loading ? (
+              <>
+                <Loader2 className="shimmer" size={20} />
+                <span>Analyzing Sources...</span>
+              </>
+            ) : (
+              <>
+                <span>Verify Credibility</span>
+                <ChevronRight size={18} />
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {result && (
         <section className="result-card">
-          <span className={`verdict-banner verdict-${result.verdict}`}>
-            Analysis Verdict
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <span className={`verdict-banner verdict-${result.verdict}`}>
+              {result.verdict} VERDICT
+            </span>
+          </div>
+          
           <div className="confidence-display">
-            {result.verdict === "REAL" ? "" : result.verdict === "FAKE" ? "" : ""}
             {result.confidence}%
-            <span style={{ fontSize: '24px', verticalAlign: 'middle', marginLeft: '10px', color: 'var(--text-sub)' }}>Confidence</span>
+            <span className="confidence-label">Confidence Score</span>
           </div>
 
           <p className="explanation">{result.reason}</p>
 
-          <div style={{ marginTop: '32px' }}>
-            {result.sources.map((src, i) => (
-              <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="source-tag">
-                <Globe size={14} /> {new URL(src).hostname} <ChevronRight size={12} />
-              </a>
-            ))}
+          <div style={{ marginTop: '40px' }}>
+            <h4 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-sub)', marginBottom: '16px' }}>REFERENCES</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+              {result.sources.map((src, i) => (
+                <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="source-tag">
+                  <Globe size={14} /> 
+                  <span style={{ fontWeight: 500 }}>{new URL(src).hostname.replace('www.', '')}</span>
+                  <ArrowRightCircle size={12} style={{ opacity: 0.5 }} />
+                </a>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
       <footer className="history-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 600 }}>Recent Activity</h2>
+          <h2 style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, var(--text-main) 0%, var(--text-sub) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Integrity History
+          </h2>
           <button 
             onClick={() => setShowHistory(!showHistory)}
-            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '17px', fontWeight: 500 }}
+            style={{ 
+              background: 'var(--card-bg)', 
+              border: '1px solid var(--border-color)', 
+              color: 'var(--text-main)', 
+              padding: '8px 20px', 
+              borderRadius: '980px', 
+              cursor: 'pointer', 
+              fontSize: '15px', 
+              fontWeight: 600,
+              transition: 'all 0.3s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
+            onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
           >
-            {showHistory ? "Show Less" : "See All"}
+            {showHistory ? "Show Less" : "Explore All"}
           </button>
         </div>
 
         {showHistory && (
           <div className="history-grid">
-            {history.map((item, idx) => (
+            {history.length > 0 ? history.map((item, idx) => (
               <div key={idx} className="history-item">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span className={`verdict-banner verdict-${item.verdict}`} style={{ fontSize: '11px' }}>{item.verdict}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{new Date(item.created_at).toLocaleDateString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+                  <span className={`verdict-banner verdict-${item.verdict}`} style={{ fontSize: '10px', padding: '4px 10px', margin: 0 }}>{item.verdict}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-sub)', fontWeight: 500 }}>{new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                 </div>
                 <h3 className="history-title">{item.claim}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-sub)', lineClamp: 2 }}>{item.reason}</p>
+                <p style={{ fontSize: '15px', color: 'var(--text-sub)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {item.reason}
+                </p>
               </div>
-            ))}
+            )) : (
+              <p style={{ color: 'var(--text-sub)', gridColumn: '1/-1', textAlign: 'center', padding: '40px' }}>No verification history found.</p>
+            )}
           </div>
         )}
       </footer>
